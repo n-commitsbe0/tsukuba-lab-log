@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tsukuba Lab Log</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --bg-grid: rgba(30, 58, 138, 0.07);
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --indigo: #1e3a8a;
+  --indigo-soft: #eef2ff;
+  --green: #16a34a;
+  --red: #dc2626;
+  --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --radius: 14px;
+  --code: #0f172a;
+}
+:root.dark {
+  --bg: #050816;
+  --bg-grid: rgba(99, 102, 241, 0.1);
+  --card: #0f172a;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --indigo: #818cf8;
+  --indigo-soft: #1e1b4b;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --code: #e2e8f0;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", "Yu Gothic UI", Meiryo, sans-serif;
+  background-color: var(--bg);
+  background-image: 
+    linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--indigo); text-decoration: none; }
+button, input, select, textarea { font-family: inherit; font-size: 14px; }
+
+.app-header {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: saturate(180%) blur(10px);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
+  max-width: 1200px; margin: 0 auto; padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.title-wrap h1 {
+  margin: 0; font-size: 22px; letter-spacing: 0.5px; font-weight: 700;
+  color: var(--indigo);
+}
+.title-wrap p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card); font-size: 12px; color: var(--muted);
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent); }
+.icon-btn {
+  border: 1px solid var(--border); background: var(--card); color: var(--text);
+  padding: 6px 10px; border-radius: 10px; cursor: pointer; transition: .2s;
+}
+.icon-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+
+.container {
+  max-width: 1200px; margin: 24px auto; padding: 0 20px;
+  display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start;
+}
+@media (max-width: 900px) {
+  .container { grid-template-columns: 1fr; }
+}
+
+.sidebar { display: grid; gap: 14px; position: sticky; top: 76px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px;
+}
+.card label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+input[type="text"], input[type="search"], select, textarea {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  outline: none; transition: border .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--indigo); }
+textarea { resize: vertical; min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+.btn-primary {
+  background: var(--indigo); color: white; border: none; padding: 10px 14px;
+  border-radius: 10px; cursor: pointer; font-weight: 600; transition: .2s;
+}
+.btn-primary:hover { opacity: .92; transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+.btn-ghost:hover { color: var(--text); border-color: var(--indigo); }
+.full { width: 100%; }
+
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--muted); cursor: pointer; user-select: none;
+}
+.tag.active, .tag:hover { background: var(--indigo-soft); color: var(--indigo); border-color: var(--indigo); }
+
+.main { min-width: 0; }
+.post-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 720px) { .post-grid { grid-template-columns: 1fr; } }
+
+.post-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
+  transition: transform .18s, box-shadow .18s; cursor: pointer; position: relative;
+  overflow: hidden;
+}
+.post-card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--indigo), transparent);
+  opacity: .7;
+}
+.post-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,23,42,.12); }
+.post-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.category {
+  font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--indigo-soft);
+  color: var(--indigo); border: 1px solid color-mix(in srgb, var(--indigo) 20%, transparent);
+  font-weight: 600;
+}
+.date { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.post-card h3 { margin: 0; font-size: 17px; line-height: 1.4; }
+.excerpt { margin: 0; color: var(--muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.post-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 11px; padding: 2px 6px; border: 1px dashed var(--border); border-radius: 6px; color: var(--muted); background: var(--bg); }
+.post-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.author { font-size: 12px; color: var(--muted); }
+.actions { display: flex; gap: 6px; }
+.actions button {
+  font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--muted); cursor: pointer;
+}
+.actions button:hover { color: var(--text); border-color: var(--indigo); }
+
+.form-card { margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .form-grid { grid-template-columns: 1fr; } }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+.preview {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+  min-height: 120px; overflow: auto;
+}
+.preview h1, .preview h2, .preview h3 { margin: .4em 0; color: var(--indigo); }
+.preview code { background: var(--indigo-soft); padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 12px; color: var(--code); }
+.preview blockquote { border-left: 3px solid var(--indigo); margin: 8px 0; padding: 4px 10px; color: var(--muted); background: color-mix(in srgb, var(--indigo) 5%, transparent); }
+.preview ul { padding-left: 1.2em; }
+
+.detail { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.detail-head { padding: 18px 18px 0; }
+.detail-body { padding: 0 18px 18px; }
+.detail-body h1,.detail-body h2,.detail-body h3 { color: var(--indigo); }
+.detail-body code { background: var(--indigo-soft); padding: 1px 5px; border-radius: 4px; font-family: ui-monospace; }
+.detail-body blockquote { border-left: 3px solid var(--indigo); margin: 12px 0; padding: 8px 12px; background: color-mix(in srgb, var(--indigo) 6%, transparent); }
+.comments { border-top: 1px dashed var(--border); padding: 14px 18px; background: color-mix(in srgb, var(--bg) 60%, var(--card)); }
+.comment { border-bottom: 1px solid var(--border); padding: 10px 0; }
+.comment:last-child { border-bottom: none; }
+.comment-meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+.log-card { font-size: 12px; }
+#serverLog { max-height: 120px; overflow: auto; margin-top: 6px; font-family: ui-monospace, monospace; color: var(--muted); }
+#serverLog div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.empty { text-align: center; color: var(--muted); padding: 40px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--card); }
+.hidden { display: none !important; }
+
+.footer { max-width: 1200px; margin: 30px auto; padding: 0 20px 40px; color: var(--muted); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="header-inner">
+    <div class="title-wrap">
+      <h1>Tsukuba Lab Log</h1>
+      <p>サーバーサイド日誌 — 研究の記録をサーバーで管理</p>
+    </div>
+    <div class="header-actions">
+      <button id="themeToggle" class="icon-btn" title="ダークモード切替">[◐]</button>
+      <div class="badge"><span class="dot"></span>API状態: 稼働中</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <aside class="sidebar">
+    <div class="card">
+      <button id="newPostBtn" class="btn-primary full">[+] 新規投稿</button>
+    </div>
+    <div class="card">
+      <label for="searchInput">検索</label>
+      <input id="searchInput" type="search" placeholder="タイトル・本文・タグで検索">
+    </div>
+    <div class="card">
+      <label for="categoryFilter">カテゴリ</label>
+      <select id="categoryFilter">
+        <option value="">すべて</option>
+        <option>物理学</option>
+        <option>生物学</option>
+        <option>情報科学</option>
+        <option>化学</option>
+        <option>その他</option>
+      </select>
+    </div>
+    <div class="card">
+      <label>タグクラウド</label>
+      <div id="tagCloud" class="tag-cloud"></div>
+    </div>
+    <div class="card log-card">
+      <div>最終同期: <span id="lastSync">--:--:--</span></div>
+      <div id="serverLog"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- 投稿フォーム -->
+    <div id="formWrap" class="card form-card hidden">
+      <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+        <h2 id="formTitle" style="margin:0; font-size:18px; color:var(--indigo)">新規投稿</h2>
+        <button id="cancelBtn" class="btn-ghost">[×] 閉じる</button>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label>タイトル</label>
+          <input id="fTitle" type="text" placeholder="例）プロトタイプ開発…">
+        </div>
+        <div>
+          <label>著者</label>
+          <input id="fAuthor" type="text" placeholder="例）山本葵">
+        </div>
+        <div>
+          <label>カテゴリ</label>
+          <select id="fCategory">
+            <option>物理学</option>
+            <option>生物学</option>
+            <option>情報科学</option>
+            <option>化学</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div>
+          <label>タグ（カンマ区切り）</label>
+          <input id="fTags" type="text" placeholder="IoT, 低電力">
+        </div>
+      </div>
+      <div class="split" style="margin-top:12px;">
+        <div>
+          <label>本文（Markdown）</label>
+          <textarea id="fBody" placeholder="# 見出し&#10;**太字** *斜体* `code`&#10;> 引用&#10;- リスト"></textarea>
+        </div>
+        <div>
+          <label>プレビュー</label>
+          <div id="fPreview" class="preview"></div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button id="saveBtn" class="btn-primary">[保存]</button>
+      </div>
+    </div>
+
+    <!-- 詳細表示 -->
+    <div id="detailWrap" class="hidden"></div>
+
+    <!-- 一覧 -->
+    <div id="listWrap">
+      <div id="postList" class="post-grid"></div>
+      <div id="emptyState" class="empty hidden">該当する記録がありません。</div>
+    </div>
+  </main>
+</div>
+
+<footer class="footer">Built with simulated server-side REST API</footer>
+
+<script>
+// ===== 日本語コメント付き / Tsukuba Lab Log =====
+
+// 疑似サーバーAPI：localStorageに保存し、200ms遅延を入れる
+
+class ServerAPI {
+  async _delay(){ await new Promise(r=>setTimeout(r,150)); }
+  async getPosts(params={}) {
+    await this._delay();
+    const q = new URLSearchParams(params).toString();
+    const res = await fetch('/api/posts?'+q);
+    return res.json();
+  }
+  async createPost(data){
+    await this._delay();
+    const res = await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    return res.json();
+  }
+  async updatePost(id,data){
+    await this._delay();
+    const res = await fetch('/api/posts/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    return res.json();
+  }
+  async deletePost(id){
+    await this._delay();
+    await fetch('/api/posts/'+id,{method:'DELETE'});
+    return true;
+  }
+  async addComment(id,comment){
+    await this._delay();
+    const res = await fetch(`/api/posts/${id}/comments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(comment)});
+    return res.json();
+  }
+}
+
+
+// ===== ユーティリティ =====
+const api = new ServerAPI();
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+let posts = [];
+let filtered = [];
+let editingId = null;
+let activeTag = '';
+let currentDetailId = null;
+
+function log(msg) {
+  const el = $('#serverLog');
+  const time = new Date().toLocaleTimeString('ja-JP');
+  el.innerHTML = `<div>[${time}] ${msg}</div>` + el.innerHTML;
+}
+function updateSync() {
+  $('#lastSync').textContent = new Date().toLocaleTimeString('ja-JP');
+}
+
+// 簡易Markdown（# ## ### > ** * ` -）
+function mdToHtml(src='') {
+  const esc = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = esc.split('\n');
+  let out = '', inList = false;
+  for (let line of lines) {
+    if (/^###\s+/.test(line)) { if(inList){out+='</ul>';inList=false} out+=`<h3>${line.replace(/^###\s+/,'')}</h3>`; continue; }
+    if (/^##\s+/.test(line)) { if(inList){out+='</ul>';inList=false} out+=`<h2>${line.replace(/^##\s+/,'')}</h2>`; continue; }
+    if (/^#\s+/.test(line)) { if(inList){out+='</ul>';inList=false} out+=`<h1>${line.replace(/^#\s+/,'')}</h1>`; continue; }
+    if (/^>\s+/.test(line)) { if(inList){out+='</ul>';inList=false} out+=`<blockquote>${line.replace(/^>\s+/,'')}</blockquote>`; continue; }
+    if (/^-\s+/.test(line)) {
+      if(!inList){ out+='<ul>'; inList=true; }
+      out+=`<li>${line.replace(/^-\s+/,'')}</li>`; continue;
+    }
+    if(inList){ out+='</ul>'; inList=false; }
+    if(line.trim()===''){ continue; }
+    let l = line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g,'<em>$1</em>')
+                .replace(/`([^`]+?)`/g,'<code>$1</code>');
+    out+=`<p>${l}</p>`;
+  }
+  if(inList) out+='</ul>';
+  return out;
+}
+function stripMd(md=''){ return md.replace(/[#>*`-]/g,'').replace(/\n+/g,' ').trim(); }
+function fmtDate(iso){ const d=new Date(iso); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+
+// ===== レンダリング =====
+function renderTagCloud() {
+  const counts = {};
+  posts.forEach(p=>p.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
+  const tags = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  $('#tagCloud').innerHTML = tags.map(t=>`<span class="tag ${activeTag===t?'active':''}" data-tag="${t}">${t} <small>(${counts[t]})</small></span>`).join('') || '<span class="muted">タグなし</span>';
+  $$('#tagCloud .tag').forEach(el=>el.onclick=()=>{ activeTag = activeTag===el.dataset.tag ? '' : el.dataset.tag; applyFilters(); renderTagCloud(); });
+}
+
+function renderList() {
+  const list = $('#postList');
+  if (!filtered.length) {
+    $('#emptyState').classList.remove('hidden');
+    list.innerHTML = '';
+    return;
+  }
+  $('#emptyState').classList.add('hidden');
+  list.innerHTML = filtered.map(p=>`
+    <article class="post-card" data-id="${p.id}">
+      <div class="post-head">
+        <span class="category">${p.category}</span>
+        <span class="date">${fmtDate(p.date)}</span>
+      </div>
+      <h3>${p.title}</h3>
+      <p class="excerpt">${stripMd(p.body).slice(0,120)}</p>
+      <div class="post-tags">${p.tags.map(t=>`<span class="chip">#${t}</span>`).join('')}</div>
+      <div class="post-foot">
+        <span class="author">by ${p.author}</span>
+        <div class="actions" onclick="event.stopPropagation()">
+          <button data-act="view">[詳細]</button>
+          <button data-act="edit">[✎]編集</button>
+          <button data-act="del">[🗑]削除</button>
+        </div>
+      </div>
+    </article>
+  `).join('');
+  // クリック処理
+  $$('.post-card').forEach(card=>{
+    const id = card.dataset.id;
+    card.onclick = ()=> openDetail(id);
+    card.querySelector('[data-act="view"]').onclick = ()=> openDetail(id);
+    card.querySelector('[data-act="edit"]').onclick = ()=> openEdit(id);
+    card.querySelector('[data-act="del"]').onclick = ()=> doDelete(id);
+  });
+}
+
+function applyFilters() {
+  const q = $('#searchInput').value.trim().toLowerCase();
+  const cat = $('#categoryFilter').value;
+  filtered = posts.filter(p=>{
+    const hitQ = !q || [p.title,p.body,p.author,p.tags.join(' ')].join(' ').toLowerCase().includes(q);
+    const hitC = !cat || p.category===cat;
+    const hitT = !activeTag || p.tags.includes(activeTag);
+    return hitQ && hitC && hitT;
+  });
+  renderList();
+}
+
+// ===== 詳細・編集 =====
+async function openDetail(id) {
+  const p = posts.find(x=>x.id===id); if(!p) return;
+  currentDetailId = id;
+  $('#listWrap').classList.add('hidden');
+  $('#formWrap').classList.add('hidden');
+  const wrap = $('#detailWrap');
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = `
+    <div class="detail">
+      <div class="detail-head">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <button class="btn-ghost" id="backBtn">[←] 一覧へ</button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-ghost" id="detailEdit">[✎]編集</button>
+            <button class="btn-ghost" id="detailDel">[🗑]削除</button>
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span class="category">${p.category}</span>
+          <span class="date">${fmtDate(p.date)} / 更新 ${fmtDate(p.updatedAt)}</span>
+        </div>
+        <h2 style="margin:8px 0 4px;">${p.title}</h2>
+        <div class="author">著者: ${p.author}　<span class="post-tags" style="display:inline-flex;">${p.tags.map(t=>`<span class="chip">#${t}</span>`).join('')}</span></div>
+      </div>
+      <div class="detail-body">${mdToHtml(p.body)}</div>
+      <div class="comments">
+        <h3 style="margin:0 0 8px; font-size:15px; color:var(--indigo);">コメント (${p.comments.length})</h3>
+        <div id="commentList">${p.comments.map(c=>`<div class="comment"><div class="comment-meta">${c.name} ・ ${fmtDate(c.date)}</div><div>${c.text.replace(/</g,'&lt;')}</div></div>`).join('') || '<div class="muted">最初のコメントを投稿してください。</div>'}</div>
+        <div style="display:grid; grid-template-columns:120px 1fr auto; gap:8px; margin-top:10px;">
+          <input id="cName" type="text" placeholder="名前">
+          <input id="cText" type="text" placeholder="コメントを入力">
+          <button id="cAdd" class="btn-primary">[送信]</button>
+        </div>
+      </div>
+    </div>
+  `;
+  $('#backBtn').onclick = ()=>{ wrap.classList.add('hidden'); $('#listWrap').classList.remove('hidden'); currentDetailId=null; };
+  $('#detailEdit').onclick = ()=> openEdit(id);
+  $('#detailDel').onclick = ()=> doDelete(id);
+  $('#cAdd').onclick = async ()=>{
+    const name = $('#cName').value.trim() || '匿名';
+    const text = $('#cText').value.trim(); if(!text) return;
+    log(`POST /api/posts/${id}/comments`);
+    await api.addComment(id, {name, text});
+    await reload();
+    openDetail(id);
+  };
+}
+
+function openEdit(id=null) {
+  editingId = id;
+  $('#detailWrap').classList.add('hidden');
+  $('#listWrap').classList.add('hidden');
+  const f = $('#formWrap'); f.classList.remove('hidden');
+  $('#formTitle').textContent = id ? '投稿を編集' : '新規投稿';
+  if (id) {
+    const p = posts.find(x=>x.id===id);
+    $('#fTitle').value = p.title;
+    $('#fAuthor').value = p.author;
+    $('#fCategory').value = p.category;
+    $('#fTags').value = p.tags.join(', ');
+    $('#fBody').value = p.body;
+  } else {
+    $('#fTitle').value = '';
+    $('#fAuthor').value = '';
+    $('#fCategory').value = '情報科学';
+    $('#fTags').value = '';
+    $('#fBody').value = '# 概要\n';
+  }
+  updatePreview();
+  $('#fTitle').focus();
+}
+
+async function doDelete(id) {
+  if (!confirm('この投稿を削除しますか？')) return;
+  log(`DELETE /api/posts/${id}`);
+  await api.deletePost(id);
+  await reload();
+  $('#detailWrap').classList.add('hidden');
+  $('#listWrap').classList.remove('hidden');
+}
+
+// ===== フォーム =====
+function updatePreview(){ $('#fPreview').innerHTML = mdToHtml($('#fBody').value); }
+$('#fBody').addEventListener('input', updatePreview);
+
+$('#newPostBtn').onclick = ()=> openEdit(null);
+$('#cancelBtn').onclick = ()=>{ $('#formWrap').classList.add('hidden'); $('#listWrap').classList.remove('hidden'); editingId=null; };
+
+$('#saveBtn').onclick = async ()=>{
+  const payload = {
+    title: $('#fTitle').value.trim(),
+    author: $('#fAuthor').value.trim() || '匿名',
+    category: $('#fCategory').value,
+    tags: $('#fTags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    body: $('#fBody').value.trim()
+  };
+  if (!payload.title || !payload.body) { alert('タイトルと本文は必須です。'); return; }
+  if (editingId) {
+    log(`PUT /api/posts/${editingId}`);
+    await api.updatePost(editingId, payload);
+  } else {
+    log('POST /api/posts');
+    await api.createPost(payload);
+  }
+  $('#formWrap').classList.add('hidden');
+  await reload();
+};
+
+// ===== 検索・フィルタ =====
+$('#searchInput').addEventListener('input', ()=> applyFilters());
+$('#categoryFilter').addEventListener('change', ()=> applyFilters());
+
+// ===== テーマ =====
+const themeToggle = $('#themeToggle');
+function applyTheme() {
+  const saved = localStorage.getItem('tsukuba_theme');
+  if (saved==='dark') document.documentElement.classList.add('dark');
+}
+themeToggle.onclick = ()=>{
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('tsukuba_theme', document.documentElement.classList.contains('dark')?'dark':'light');
+};
+applyTheme();
+
+// ===== データ読込 =====
+async function reload() {
+  log('GET /api/posts');
+  posts = await api.getPosts();
+  updateSync();
+  renderTagCloud();
+  applyFilters();
+}
+
+// 初期化
+(async function init(){
+  await reload();
+})();
+</script>
+</body>
+</html>
