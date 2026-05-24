@@ -1,0 +1,10 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tsukuba Lab Log</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><h1>Tsukuba Lab Log</h1><p>研究日誌 - Node.js + Express</p><button id="newBtn">＋ 新規投稿</button></header>
+<main><div class="toolbar"><input id="search" placeholder="検索..."><select id="tagFilter"><option value="">すべてのタグ</option></select></div><div id="posts"></div></main>
+<div id="modal" class="hidden"><div class="modal-content"><h2 id="modalTitle">新規投稿</h2><input id="title" placeholder="タイトル"><input id="tags" placeholder="タグ（カンマ区切り）"><textarea id="content" rows="8" placeholder="本文"></textarea><div class="actions"><button id="saveBtn">保存</button><button id="cancelBtn">キャンセル</button></div></div></div>
+<script src="app.js"></script>
+</body></html>

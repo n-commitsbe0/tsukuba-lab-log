@@ -1,0 +1,19 @@
+﻿let posts=[],editingId=null;const $=s=>document.querySelector(s);
+async function load(){posts=await fetch("/api/posts").then(r=>r.json());render()}
+function render(){const q=$("#search").value.toLowerCase(),t=$("#tagFilter").value;const f=posts.filter(p=>(!q||p.title.toLowerCase().includes(q)||p.content.toLowerCase().includes(q))&&(!t
+
+
+cd $HOME\Downloads\tsukuba-lab-log
+
+# publicフォルダ作成
+mkdir public -Force
+
+# package.json
+@'
+{
+  "name": "tsukuba-lab-log",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "express": "^4.19.2" }
+}
